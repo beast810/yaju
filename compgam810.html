@@ -483,7 +483,9 @@
 
         // Initialize and start the game
         initializeGame();
-        gameLoop();
+        if (gameEnabled) {
+            gameLoop();
+        }
     </script>
 </body>
 </html>
