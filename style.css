@@ -1,0 +1,112 @@
+body {
+    margin: 0;
+    font-family: 'Roboto Mono', monospace;
+    color: #00ff00; /* ネオングリーン */
+    background-color: #000000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+.container {
+    width: 90%;
+    max-width: 450px;
+    padding: 40px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border: 2px solid #00ff00;
+    box-shadow: 0 0 15px #00ff00;
+    text-align: center;
+    position: relative;
+}
+
+.content-section {
+    display: none;
+    animation: fadeIn 0.8s ease-in-out forwards;
+}
+
+.content-section.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.title {
+    font-size: 2.5em;
+    text-shadow: 0 0 5px #00ff00;
+    margin-bottom: 20px;
+}
+
+.message, .feedback, .result-message {
+    color: #ff0000; /* エラーメッセージは赤 */
+    font-size: 0.9em;
+    min-height: 20px;
+}
+
+input, button, .test-options button, .link {
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 1em;
+    background-color: transparent;
+    border: 1px solid #00ff00;
+    color: #00ff00;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+input {
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+button:hover, .test-options button:hover, .link:hover {
+    background-color: #00ff00;
+    color: #000000;
+    box-shadow: 0 0 10px #00ff00;
+}
+
+.link {
+    display: block;
+    text-decoration: none;
+}
+
+.test-question {
+    font-size: 1.2em;
+    margin-bottom: 20px;
+}
+
+.test-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.result-message {
+    font-size: 1.2em;
+    white-space: pre-wrap; /* 改行を有効にする */
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 20px;
+    }
+    .title {
+        font-size: 2em;
+    }
+    input, button, .test-options button, .link {
+        font-size: 0.9em;
+    }
+}

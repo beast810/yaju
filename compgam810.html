@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Block Challenge</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            position: relative;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        canvas {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            background: radial-gradient(circle at center, #1a1a2e 0%, #16213e 100%);
+            display: block;
+        }
+
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            color: white;
+            font-size: 24px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .success-message {
+            font-size: 32px;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .gameover-message {
+            font-size: 32px;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .restart-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
+        }
+
+        .score {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="score">Score: <span id="scoreDisplay">0</span></div>
+        <canvas id="canvas" width="800" height="600"></canvas>
+        <div id="overlay" class="ui-overlay hidden">
+            <div id="gameMessage" class="success-message">Congratulations!</div>
+            <div id="gameSubMessage">All blocks cleared!</div>
+            <button class="restart-btn" onclick="startNewGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // Get DOM elements
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const overlay = document.getElementById('overlay');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const gameMessage = document.getElementById('gameMessage');
+        const gameSubMessage = document.getElementById('gameSubMessage');
+
+        // Game state variables
+        let paddle = { x: 0, y: 0, width: 150, height: 15 };
+        let ball = { x: 0, y: 0, dx: 0, dy: 0, radius: 8 };
+        let blocks = [];
+        let score = 0;
+        let animationId = null;
+        let blockImage = new Image();
+
+        // Block configuration
+        const blockRows = 5;
+        const blockCols = 10;
+        const blockWidth = 70;
+        const blockHeight = 30;
+        const blockPadding = 5;
+        const blockOffsetTop = 60;
+        const blockOffsetLeft = 35;
+
+        // Initialize game objects
+        function initializeGame() {
+            // Reset paddle position
+            paddle.x = canvas.width / 2 - paddle.width / 2;
+            paddle.y = canvas.height - 30;
+
+            // Reset ball position
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height - 50;
+            ball.dx = 4;
+            ball.dy = -4;
+
+            // Reset score
+            score = 0;
+            scoreDisplay.textContent = score;
+
+            // Create blocks
+            createBlocks();
+        }
+
+        function createBlocks() {
+            blocks = [];
+            for (let r = 0; r < blockRows; r++) {
+                for (let c = 0; c < blockCols; c++) {
+                    blocks.push({
+                        x: c * (blockWidth + blockPadding) + blockOffsetLeft,
+                        y: r * (blockHeight + blockPadding) + blockOffsetTop,
+                        width: blockWidth,
+                        height: blockHeight,
+                        visible: true
+                    });
+                }
+            }
+        }
+
+        // Drawing functions
+        function drawPaddle() {
+            const gradient = ctx.createLinearGradient(paddle.x, paddle.y, paddle.x, paddle.y + paddle.height);
+            gradient.addColorStop(0, '#ff6b6b');
+            gradient.addColorStop(0.5, '#ee5a24');
+            gradient.addColorStop(1, '#d63031');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+            
+            // Add shine effect
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.fillRect(paddle.x, paddle.y, paddle.width, 3);
+        }
+
+        function drawBall() {
+            const gradient = ctx.createRadialGradient(ball.x, ball.y, 0, ball.x, ball.y, ball.radius);
+            gradient.addColorStop(0, '#74b9ff');
+            gradient.addColorStop(0.7, '#0984e3');
+            gradient.addColorStop(1, '#2d3436');
+            
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            ctx.closePath();
+            
+            // Add shine
+            ctx.beginPath();
+            ctx.arc(ball.x - 2, ball.y - 2, 3, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawBlocks() {
+            for (let i = 0; i < blocks.length; i++) {
+                const block = blocks[i];
+                if (block.visible) {
+                    // Try to use image first
+                    if (blockImage.complete && blockImage.naturalWidth > 0) {
+                        ctx.drawImage(blockImage, block.x, block.y, block.width, block.height);
+                    } else {
+                        // Fallback to colored blocks
+                        const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6'];
+                        const colorIndex = i % colors.length;
+                        
+                        ctx.fillStyle = colors[colorIndex];
+                        ctx.fillRect(block.x, block.y, block.width, block.height);
+                        
+                        // Add border
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(block.x, block.y, block.width, block.height);
+                    }
+                }
+            }
+        }
+
+        // Game logic
+        function collisionDetection() {
+            for (let i = 0; i < blocks.length; i++) {
+                const block = blocks[i];
+                if (block.visible) {
+                    if (ball.x > block.x && 
+                        ball.x < block.x + block.width &&
+                        ball.y > block.y && 
+                        ball.y < block.y + block.height) {
+                        
+                        ball.dy = -ball.dy;
+                        block.visible = false;
+                        score += 10;
+                        scoreDisplay.textContent = score;
+                        
+                        // Check for win condition
+                        let allDestroyed = true;
+                        for (let j = 0; j < blocks.length; j++) {
+                            if (blocks[j].visible) {
+                                allDestroyed = false;
+                                break;
+                            }
+                        }
+                        
+                        if (allDestroyed) {
+                            showWin();
+                            return;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        function updateBall() {
+            // Move ball
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+            
+            // Wall collisions
+            if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
+                ball.dx = -ball.dx;
+            }
+            if (ball.y - ball.radius < 0) {
+                ball.dy = -ball.dy;
+            }
+            
+            // Paddle collision
+            if (ball.y + ball.radius > paddle.y && 
+                ball.x > paddle.x && 
+                ball.x < paddle.x + paddle.width &&
+                ball.dy > 0) {
+                ball.dy = -ball.dy;
+                
+                // Add angle based on hit position
+                const hitPos = (ball.x - paddle.x) / paddle.width;
+                ball.dx = 6 * (hitPos - 0.5);
+            }
+            
+            // Game over if ball goes below paddle
+            if (ball.y > canvas.height) {
+                showGameOver();
+            }
+        }
+
+        function gameLoop() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw everything
+            drawBlocks();
+            drawPaddle();
+            drawBall();
+            
+            // Update game state
+            collisionDetection();
+            updateBall();
+            
+            // Continue loop
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        function showWin() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            gameMessage.textContent = 'Congratulations!';
+            gameMessage.className = 'success-message';
+            gameSubMessage.textContent = 'All blocks cleared!';
+            overlay.classList.remove('hidden');
+        }
+
+        function showGameOver() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            gameMessage.textContent = 'Game Over';
+            gameMessage.className = 'gameover-message';
+            gameSubMessage.textContent = 'Try again!';
+            overlay.classList.remove('hidden');
+        }
+
+        function startNewGame() {
+            overlay.classList.add('hidden');
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            initializeGame();
+            gameLoop();
+        }
+
+        // Input handling
+        function updatePaddlePosition(clientX) {
+            const rect = canvas.getBoundingClientRect();
+            const x = clientX - rect.left;
+            paddle.x = Math.max(0, Math.min(canvas.width - paddle.width, x - paddle.width / 2));
+        }
+
+        // Event listeners
+        canvas.addEventListener('mousemove', function(e) {
+            updatePaddlePosition(e.clientX);
+        });
+
+        canvas.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+        });
+
+        canvas.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+            if (e.touches.length > 0) {
+                updatePaddlePosition(e.touches[0].clientX);
+            }
+        });
+
+        // Load image and start game
+        blockImage.src = 'block810mat.png';
+        blockImage.onerror = function() {
+            console.log('Block image not found, using colored blocks');
+        };
+
+        // Initialize and start the game
+        initializeGame();
+        gameLoop();
+    </script>
+</body>
+</html>
