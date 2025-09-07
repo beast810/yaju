@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unknown</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div id="login-section" class="content-section active">
+            <h1 class="title">LOGIN</h1>
+            <p class="message"></p>
+            <form id="login-form">
+                <input type="text" id="login-id" placeholder="ID" required>
+                <input type="password" id="login-pw" placeholder="Password" required>
+                <button type="submit">LOGIN</button>
+            </form>
+            <a href="#" id="create-account-link" class="link">Create Account</a>
+        </div>
+
+        <div id="create-account-section" class="content-section">
+            <h1 class="title">Account Creation</h1>
+            <p class="description">適性検査が必要です。</p>
+            <button id="start-test-btn">検査を開始</button>
+        </div>
+
+        <div id="test-section" class="content-section">
+            <h1 class="title">適性検査</h1>
+            <p id="test-question" class="test-question"></p>
+            <div id="test-options" class="test-options"></div>
+            <input type="text" id="test-input" placeholder="解答を入力" style="display: none;">
+            <button id="test-submit-btn">解答</button>
+            <p id="test-feedback" class="feedback"></p>
+        </div>
+
+        <div id="result-section" class="content-section">
+            <p class="result-message"></p>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
