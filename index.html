@@ -1,46 +1,149 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unknown</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coming Soon</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(-45deg, #1e3c72, #2a5298, #1e3c72, #000);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      color: white;
+      padding: 20px;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      padding: 20px;
+      animation: fadeIn 2s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      font-size: 3.5em;
+      margin-bottom: 10px;
+    }
+
+    p.description {
+      font-size: 1.3em;
+      margin-bottom: 25px;
+      color: #ddd;
+    }
+
+    .countdown {
+      font-size: 1em;
+      margin-bottom: 20px;
+      color: #ccc;
+    }
+
+    .progress-container {
+      width: 100%;
+      background-color: rgba(255, 255, 255, 0.2);
+      height: 20px;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background-color: #ff9800;
+      transition: width 1s ease;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 2em;
+      }
+      p.description {
+        font-size: 1em;
+      }
+      .countdown {
+        font-size: 0.9em;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div id="login-section" class="content-section active">
-            <h1 class="title">LOGIN</h1>
-            <p class="message"></p>
-            <form id="login-form">
-                <input type="text" id="login-id" placeholder="ID" required>
-                <input type="password" id="login-pw" placeholder="Password" required>
-                <button type="submit">LOGIN</button>
-            </form>
-            <a href="#" id="create-account-link" class="link">Create Account</a>
-        </div>
+  <div class="container">
+    <h1>🚀 Coming Soon</h1>
+    <p class="description">in-progress</p>
 
-        <div id="create-account-section" class="content-section">
-            <h1 class="title">Account Creation</h1>
-            <p class="description">適性検査が必要です。</p>
-            <button id="start-test-btn">検査を開始</button>
-        </div>
+    <div class="countdown" id="countdown">カウント中...</div>
 
-        <div id="test-section" class="content-section">
-            <h1 class="title">適性検査</h1>
-            <p id="test-question" class="test-question"></p>
-            <div id="test-options" class="test-options"></div>
-            <input type="text" id="test-input" placeholder="解答を入力" style="display: none;">
-            <button id="test-submit-btn">解答</button>
-            <p id="test-feedback" class="feedback"></p>
-        </div>
-
-        <div id="result-section" class="content-section">
-            <p class="result-message"></p>
-        </div>
+    <div class="progress-container">
+      <div class="progress-bar" id="progressBar"></div>
     </div>
-    <script src="script.js"></script>
-</body>
-</html>
+  </div>
+
+  <script>
+  const countdownEl = document.getElementById("countdown");
+  const progressBar = document.getElementById("progressBar");
+
+  // 日時定義
+  const countdownStart = new Date(2025, 8, 1, 0, 0, 0);     // カウントダウン開始（9月1日）
+  const progressStart = new Date(2025, 8, 7, 0, 0, 0);      // プログレスバー開始（9月7日 0:00）
+  const endTime       = new Date(2025, 8, 7, 21, 0, 0);     // 終了（9月7日 21:00）
+
+  const interval = setInterval(updateCountdown, 1000);
+
+  function updateCountdown() {
+    const now = new Date();
+
+    const remaining = endTime - now;
+
+    if (remaining <= 0) {
+      countdownEl.innerHTML = "まもなく公開！";
+      progressBar.style.width = "100%";
+      clearInterval(interval);  // タイマー停止
+      return;
+    }
+
+    // 残り時間の表示
+    const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((remaining / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((remaining / 1000 / 60) % 60);
+    const seconds = Math.floor((remaining / 1000) % 60);
+
+    countdownEl.innerHTML = `${days}日 ${hours}時間 ${minutes}分 ${seconds}秒`;
+
+    // プログレスバー制御（9/7の0:00〜21:00の間だけ動く）
+    if (now < progressStart) {
+      progressBar.style.width = "0%";
+    } else if (now >= endTime) {
+      progressBar.style.width = "100%";
+    } else {
+      const totalDuration = endTime - progressStart;
+      const elapsed = now - progressStart;
+      const progress = (elapsed / totalDuration) * 100;
+      progressBar.style.width = `${progress.toFixed(2)}%`;
+    }
+  }
+
+  updateCountdown(); // 初回即時実行
+</script>
